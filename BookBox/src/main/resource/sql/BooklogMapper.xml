@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="BooklogMapper">
+	
+	<resultMap id="booklogSelectMap" type="booklog">
+		<result property="booklogNo" column="booklog_no" jdbcType="VARCHAR"/>
+		<result property="booklogName" column="booklog_name" jdbcType="VARCHAR"/>
+		<result property="booklogImage" column="booklog_image" jdbcType="VARCHAR"/>
+		<result property="booklogIntro" column="booklog_intro" jdbcType="VARCHAR"/>
+		<association property="user" javaType="user">
+			<result property="email" column="email" jdbcType="VARCHAR"/>
+			<result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+		</association>
+		<collection property="postingList" ofType="posting" column="email">
+			<result property="postingNo" column="posting_no" jdbcType="INTEGER"/>
+			<result property="postingTitle" column="posting_title" jdbcType="VARCHAR"/>
+			<result property="postingContent" column="posting_content" jdbcType="VARCHAR"/>
+			<result property="postingRegDate" column="posting_reg_date" jdbcType="VARCHAR"/>
+			<result property="postingUpdateDate" column="posting_update_date" jdbcType="VARCHAR"/>
+			<association property="user" javaType="user">
+				<result property="email" column="posting_email"/>
+				<result property="nickname" column="posting_nickname"/>
+			</association>
+			<collection property="postingFileList" ofType="uploadFile" column="{targetNo=posting_no}" select="selectPostingFileList"/>
+		</collection>
+		<collection property="bookmarkList" ofType="user" column="email">
+			<result property="email" column="bookmark_email" jdbcType="VARCHAR"/>		
+			<result property="nickname" column="bookmark_nickname" jdbcType="VARCHAR"/>
+		</collection>
+	</resultMap>
+	
+	<select id="selectPostingFileList" parameterType="map" resultMap="CommonMapper.uploadFileSelectMap">
+		SELECT
+			file_name, origin_name
+		FROM
+			upload_file
+		WHERE
+			category_no = 5 AND target_no = #{targetNo} AND main_file = 1
+	</select>
+	
+	<update id="updateBooklog" parameterType="booklog">
+		UPDATE user
+		<set>
+			booklog_name = #{booklogName},
+			<if test="booklogImage != null">
+				booklog_image = #{booklogImage},
+			</if>
+			booklog_intro = #{booklogIntro}
+		</set>
+		WHERE
+			booklog_no = #{booklogNo}
+	</update>
+	
+	
+	<select id="getBooklog" parameterType="booklog" resultMap="booklogSelectMap">
+		SELECT
+			u.email, u.nickname, u.booklog_name, u.booklog_image, u.booklog_intro, u.booklog_no,
+			p.posting_no, p.posting_title, p.posting_content, 
+			bu.email bookmark_email, bu.nickname bookmark_nickname
+		FROM
+			user u
+			LEFT OUTER JOIN posting p ON u.email = p.email
+			LEFT OUTER JOIN (<include refid="tagWiring"/>) tw ON p.posting_no = tw.target_no
+			LEFT OUTER JOIN bookmark b ON u.email = b.email
+			LEFT OUTER JOIN user bu ON b.target_email = bu.email
+		<where>
+			<if test="user != null">
+				u.email = #{user.email}
+			</if>
+			<if test="booklogNo != 0">
+				AND u.booklog_no = #{booklogNo}
+			</if>
+			 AND (bu.active = 1 OR bu.active IS NULL) AND (p.active = 1 OR p.active IS NULL)
+		</where>
+		ORDER BY
+			p.posting_no DESC
+	</select>
+	
+	<select id="getBooklogList" parameterType="map" resultMap="booklogSelectMap">
+		SELECT
+			u.email, u.nickname, u.booklog_name, u.booklog_image, u.booklog_intro, u.booklog_no, '5' posting_no
+		FROM
+			user u
+			<if test="search.condition == 'main'">
+				LEFT OUTER JOIN (<include refid="viewCount"/>) vc ON u.booklog_no = vc.target_no
+			</if>
+			<if test="search.condition == 'bookmark'">
+				LEFT OUTER JOIN bookmark b ON u.email = b.target_email
+			</if>
+		<where>
+			<if test="search.condition == 'nickname'">
+				AND u.nickname LIKE '%${search.keyword}%'
+			</if>
+			<if test="search.condition == 'bookmark'">
+				AND b.email = #{search.keyword}
+			</if>
+			AND u.active=1
+		</where>
+		<if test="search.condition == 'main'">
+			ORDER BY vc.count DESC
+		</if>
+		LIMIT
+			#{page.startRow}, #{page.pageSize}
+	</select>
+	
+	<insert id="addBookmark" parameterType="map">
+		INSERT
+		INTO bookmark( email, target_email )
+		VALUES( #{user.email}, #{booklog.user.email} )
+	</insert>
+	
+	<delete id="deleteBookmark" parameterType="map">
+		DELETE
+		FROM bookmark
+		WHERE email = #{user.email} AND target_email = #{booklog.user.email}
+	</delete>
+	
+	<select id="getBookmark" parameterType="map" resultType="String">
+		SELECT
+			email
+		FROM
+			bookmark
+		WHERE
+			email = #{user.email} AND target_email = #{booklog.user.email}
+	</select>
+	
+	<select id="getDailyVisitors" parameterType="int" resultType="map">
+		SELECT
+			num, COUNT(reg_date) daycount
+		FROM
+			( SELECT date(current_date()-INTERVAL (@n:=@n+1) day) date, @rnum:=@rnum+1 num
+				FROM codes, (SELECT @n:=-1) tmp, (SELECT @rnum:=-1) tmp2
+				LIMIT 7 ) vt
+			LEFT OUTER JOIN (SELECT 
+								reg_date
+							FROM 
+								log
+							WHERE
+								category_no=4 AND target_no=#{value} AND behavior=1) lg
+						ON date = date(reg_date)
+		GROUP BY
+			date
+		ORDER BY 
+			date
+	</select>
+		
+	<select id="getVisitors" parameterType="map" resultType="map">
+		SELECT
+			num, COUNT(reg_date) ${interval}count
+		FROM
+			( SELECT ${interval}(current_date()-INTERVAL (@n:=@n+1) ${interval}) ${interval}, @rnum:=@rnum+1 num
+				FROM codes, (SELECT @n:=-1) tmp, (SELECT @rnum:=-1) tmp2
+				LIMIT 7 ) vt
+			LEFT OUTER JOIN (SELECT 
+								reg_date
+							FROM 
+								log
+							WHERE
+								category_no=4 AND target_no=#{value} AND behavior=1) lg
+						ON ${interval} = ${interval}(reg_date)
+		GROUP BY
+			${interval}
+		ORDER BY 
+			${interval}
+	</select>
+	
+	<select id="getTagStatistics" parameterType="map" resultType="map">
+		SELECT
+			vt.tag_name tagName, vt.count, @rnum:=@rnum+1 num
+		FROM
+			(SELECT @rnum:=-1) tmp,
+			(SELECT 
+				t.tag_name, count(t.tag_name) count
+			FROM
+				tag t
+				LEFT JOIN tag_group tg ON t.tag_no = tg.tag_no
+				LEFT JOIN log l ON tg.category_no = l.category_no AND tg.target_no = l.target_no
+			WHERE
+				l.email = #{email}
+				and l.behavior in (1,2,4)
+			GROUP BY 
+				t.tag_name
+			ORDER BY 
+				count DESC
+			LIMIT
+				0, 20) vt
+		ORDER BY 
+			vt.count DESC
+	</select>
+	
+	<select id="getCounts" parameterType="string" resultType="map">
+		SELECT
+			creation_count cc, posting_count pc, bookmark_count bc, writing_count wc, 'counts' counts
+		FROM
+			(SELECT
+				COUNT(*) creation_count
+			FROM
+				creation
+			WHERE
+				author = #{value} AND active = 1) c,
+			(SELECT
+				COUNT(*) posting_count
+			FROM
+				posting
+			WHERE
+				email = #{value} AND active = 1) p,
+			(SELECT
+				COUNT(*) bookmark_count
+			FROM
+				bookmark
+			WHERE
+				target_email = #{value}) b,
+			(SELECT
+				COUNT(*) writing_count
+			FROM
+				writing w, creation c
+			WHERE
+				w.creation_no = c.creation_no AND c.author = #{value} 
+			) w
+	</select>
+	
+	<select id="getBookLikeList" parameterType="map" resultType="String">
+		SELECT
+			target_no isbn
+		FROM
+			`like` l
+			LEFT JOIN user u ON l.email = u.email
+		WHERE
+			l.email = #{email} AND category_no = 9
+		ORDER BY
+			like_no DESC
+		<if test="page != null">
+			LIMIT
+				#{page.startRow}, #{page.pageSize}
+		</if>
+	</select>
+
+	<sql id="tagWiring">
+		SELECT
+			tg.tag_group_no, tg.tag_no, t.tag_name, tg.target_no
+		FROM
+			tag_group tg, tag t
+		WHERE
+			tg.tag_no = t.tag_no AND tg.category_no = 5
+	</sql>
+	
+	<sql id="viewCount">
+		SELECT
+			count(*) count, target_no
+		FROM
+			log
+		WHERE
+			category_no = 4 AND behavior = 1
+		GROUP BY
+			target_no
+	</sql>
+
+</mapper>

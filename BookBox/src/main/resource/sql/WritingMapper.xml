@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="WritingMapper">
+	
+	<resultMap id="writingSelectMap" type="writing" >
+		<result property="writingNo" 					column="writing_no" 						jdbcType="INTEGER"/>
+		<result property="creationNo" 					column="creation_no" 						jdbcType="INTEGER"/>
+		<result property="writingTitle"					column="writing_title" 					jdbcType="VARCHAR" />
+		<result property="writingContent" 			column="writing_content" 			jdbcType="VARCHAR" />
+		<result property="regDate" 						column="reg_date" 							jdbcType="DATE" />
+		<result property="updateDate" 				column="update_date" 					jdbcType="DATE" />	
+				<collection property="writingFileList" javaType="java.util.ArrayList" ofType="uploadFile" 
+								column="{categoryNo=writing_category_no,targetNo=writing_no}" select="CommonMapper.getUploadFileList"/>
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="addWriting"		parameterType="writing" useGeneratedKeys="true" keyProperty="writingNo" keyColumn="writing_no">
+	 	INSERT
+		INTO writing(writing_title,  writing_content, creation_no) 
+		VALUES	 (#{writingTitle},
+						  #{writingContent},
+						  #{creationNo})
+	
+	 </insert>
+ 
+	 <!-- SQL : UPDATE -->
+	 <update	id="updateWriting"	parameterType="writing" >
+	   	UPDATE writing
+	   	<set>
+	  	 	<if test ="writingTitle != null">
+	   			writing_title 	= #{writingTitle} ,
+	   		</if>
+	   		<if test ="writingContent != null">
+	   			writing_content = #{writingContent},
+	   		</if>
+	   		
+	   			update_date = now(),		
+	   		
+	   		<if test ="active != 1">
+				active 	= #{active}
+			</if>
+	   	</set>
+	   	<where>
+	   		writing_no = #{writingNo}
+	   	</where>
+	
+	 </update>
+	 
+	 	 <!-- SQL : SELECT ONE -->
+	 <select 	id="getWriting"	parameterType="writing"	 resultMap="writingSelectMap">
+		SELECT
+		writing_no, creation_no, writing_title , writing_content, reg_date , update_date, active,
+		'2' as writing_category_no, '1' as category_no 
+		FROM writing
+		<where>
+		 writing_no = #{writingNo}	
+		
+		<if test="active==0">
+			AND active = 1
+		</if>
+			
+		</where>
+	 </select>
+	 
+	 
+	 <!-- SQL : SELECT WritingLIST -->
+	<select  id="getWritingList"  parameterType="map"	resultMap="writingSelectMap">
+		
+		SELECT
+			w.writing_no, w.writing_title , w.creation_no,
+			w.writing_content, w.reg_date , 
+			w.update_date, w.active,
+			'2' as writing_category_no,
+			
+			u.nickname
+
+		FROM 
+			writing w, creation c, user u
+	
+		<where>
+			w.creation_no =c.creation_no AND
+			u.email = c.author AND
+			w.creation_no = #{targetNo} AND
+			w.active = 1
+			
+		</where>
+		GROUP BY
+			w.writing_no, w.writing_title , w.creation_no,
+			w.writing_content, w.reg_date , 
+			w.update_date, w.active,
+			writing_category_no,
+			u.nickname	
+		
+		ORDER BY w.reg_date DESC 	
+		
+		<if test="page !=null">
+		LIMIT #{page.startRow}, #{page.pageSize}
+		</if>
+	</select>
+	 
+	 
+
+	<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalWritingCount"  parameterType="creation"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM writing
+	  	WHERE creation_no =#{creationNo}						
+	 </select>
+
+</mapper>

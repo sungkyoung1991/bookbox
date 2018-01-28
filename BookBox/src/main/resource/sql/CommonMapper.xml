@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CommonMapper">
+
+	<resultMap id="replySelectMap" type="reply">
+		<result property="regDate" column="reg_date" jdbcType="DATE" />
+		<result property="content" column="reply_content" jdbcType="VARCHAR" />
+		<association property="user" javaType="user">
+			<result property="email" column="email" />
+			<result property="nickname" column="nickname" />
+		</association>
+	</resultMap>
+	
+	<resultMap id="gradeSelectMap" type="grade">
+		<result property="average" column="average" jdbcType="DECIMAL" />
+		<result property="userCount" column="user_count" jdbcType="NUMERIC" />
+		<result property="doGrade" column="do_grade" jdbcType="BOOLEAN" />
+	</resultMap>
+
+	<resultMap id="likeSelectMap" type="like">
+		<result property="totalLike" column="total_like" jdbcType="NUMERIC" />
+		<result property="doLike" column="do_like" jdbcType="BOOLEAN" />
+	</resultMap>
+	
+	<resultMap id="uploadFileSelectMap" type="uploadFile">
+		<result property="uploadNo" 		column="upload_no" 			jdbcType="NUMERIC" />
+		<result property="categoryNo" 	column="category_no" 		jdbcType="NUMERIC" />
+		<result property="targetNo" 		column="target_no" 			jdbcType="NUMERIC" />
+		<result property="fileName" 			column="file_name" 			jdbcType="VARCHAR" />
+		<result property="originName" 	column="origin_name" 		jdbcType="VARCHAR" />
+		<result property="mainFile" 			column="main_file" 				jdbcType="INTEGER" />
+	</resultMap>
+	
+	 <resultMap id="hashMap" type="hashMap">
+		<result property="age0" column="age_0" jdbcType="NUMERIC" />
+		<result property="age1" column="age_10" jdbcType="NUMERIC" />
+		<result property="age2" column="age_20" jdbcType="NUMERIC" />
+		<result property="age3" column="age_30" jdbcType="NUMERIC" />
+		<result property="age4" column="age_40" jdbcType="NUMERIC" />
+		<result property="age5" column="age_50" jdbcType="NUMERIC" />
+		<result property="age6" column="age_60" jdbcType="NUMERIC" />
+		<result property="age7" column="age_70" jdbcType="NUMERIC" />
+    </resultMap>
+	
+	<insert id="addReply" parameterType="map" useGeneratedKeys="true" keyProperty="reply_no">
+		INSERT
+		INTO reply(email, category_no, target_no, reply_content)
+		VALUES ( #{user.email}, #{categoryNo}, #{targetNo},	#{reply.content})
+	</insert>		
+
+	<delete id="deleteReply" parameterType="map">
+		DELETE 
+		FROM reply
+		WHERE category_no = #{categoryNo} AND
+			  target_no = #{targetNo} AND
+			  reply_content = #{reply.content} 
+	</delete>
+
+	<select id="getReplyList" parameterType="map" resultMap="replySelectMap">
+		SELECT reply.email, user.nickname, reply.reply_content, reply.reg_date
+		FROM reply LEFT JOIN user
+        ON reply.email = user.email
+		WHERE category_no = #{categoryNo} AND
+			  target_no = #{targetNo}
+		ORDER BY reg_date DESC 
+		<if test="page != null">
+		LIMIT #{page.startRow}, #{page.pageSize}
+		</if>	  
+			 
+	</select>
+
+	<select id="viewCount" parameterType="map" resultType="int">
+		SELECT count(*)
+		FROM log
+		WHERE category_no = #{categoryNo} AND
+			   target_no = #{targetNo} AND
+			   behavior = 1
+	</select>
+
+	<insert id="addGrade" parameterType="map" useGeneratedKeys="true" keyProperty="grade_no">
+		INSERT 
+		INTO grade(email, category_no, target_no, grade) 
+		VALUES ( #{user.email}, #{categoryNo}, #{targetNo}, #{grade.userCount} )
+	</insert>
+
+	<select id="getGrade" parameterType="map" resultMap="gradeSelectMap">
+		SELECT
+		ifnull(avg(grade),0) average, count(ifnull(grade, 0)) 'user_count', sum(if( email=#{user.email}, true, 0)) AS do_grade
+		FROM grade
+		WHERE category_no =	#{categoryNo} AND
+			  target_no = #{targetNo}
+	</select>
+	
+	
+	 <select id="getDoGrade" parameterType="map" resultType="int">
+	SELECT COUNT(*)
+	FROM	grade
+    WHERE
+	    category_no =	#{categoryNo} AND
+	    target_no = #{targetNo} AND
+		email = #{user.email} 
+	</select>
+	
+	<select id="getAvgGrade" parameterType="map" resultMap="gradeSelectMap">
+		SELECT ifnull(avg(g.grade),0) AS average
+		FROM grade g
+			right outer join writing w on w.writing_no = g.target_no
+					right outer join creation c on c.creation_no = w.creation_no
+			WHERE g.category_no = 2 and c.creation_no = #{targetNo}
+	</select>
+	
+	<insert id="addLike" parameterType="map" useGeneratedKeys="true" keyProperty="like_no">
+		INSERT
+		INTO `like`(email, category_no, target_no) 
+		VALUES ( #{user.email}, #{categoryNo}, #{targetNo})
+	</insert>
+	
+	<select id="getLike" parameterType="map" resultMap="likeSelectMap">
+		SELECT
+		count(*) total_like, sum(if( email=#{user.email}, true, false)) AS do_like
+		FROM `like`
+		WHERE category_no =	#{categoryNo} AND
+			  target_no = #{targetNo}
+	</select>
+	
+	<delete id="deleteLike" parameterType="map">
+		DELETE FROM	`like`
+		WHERE category_no = #{categoryNo} AND
+		target_no = #{targetNo} AND
+		email = #{user.email}
+	</delete>
+	
+	<insert id="addUploadFile" parameterType="list" >
+		INSERT
+		INTO upload_file(category_no, target_no, file_name, origin_name, main_file)
+		VALUES
+		<foreach item="uploadFile" index="index" collection="list"
+      open="" separator="," close="">
+       ( #{uploadFile.categoryNo}, 
+        #{uploadFile.targetNo}, 
+        #{uploadFile.fileName},
+        #{uploadFile.originName}, 
+        #{uploadFile.mainFile})
+        </foreach>
+		
+	</insert>
+	
+	<select id="getUploadFileList" parameterType="map" resultMap="uploadFileSelectMap">
+		SELECT
+			category_no, target_no, file_name, origin_name, main_file
+		FROM upload_file
+		WHERE 
+			category_no =	#{categoryNo} AND
+			target_no = #{targetNo}
+	</select>
+	
+	<delete id="deleteUploadFile" parameterType="map">
+		DELETE FROM	upload_file
+		WHERE 
+			category_no = #{categoryNo} AND
+			target_no = #{targetNo}
+	</delete>
+	
+	<select id="getBookStatics" parameterType="map" resultType="hashMap">
+		SELECT
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 0 AND 9 , 1, 0)) AS age_0,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 10 AND 19 , 1, 0)) AS age_10,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 20 AND 29 , 1, 0)) AS age_20,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 30 AND 39 , 1, 0)) AS age_30,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 40 AND 49 , 1, 0)) AS age_40,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 50 AND 59 , 1, 0)) AS age_50,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 60 AND 69 , 1, 0)) AS age_60,
+		SUM(IF(DATE_FORMAT(NOW(),'%Y')-SUBSTRING(birth,1,4) BETWEEN 70 AND 79 , 1, 0)) AS age_70
+		FROM user
+		RIGHT JOIN log
+		ON user.email = log.email
+		WHERE target_no = #{targetNo} AND
+			  category_no = 9 AND
+			  gender = #{gender} AND
+			  behavior = 1
+	</select>
+	
+	<select id="getUserBook" parameterType="String" resultType="String">
+		SELECT tag_name FROM tag t
+		LEFT JOIN tag_group tg ON t.tag_no = tg.tag_no AND tg.category_no = 9
+		LEFT JOIN log l ON l.target_no = tg.target_no
+		 WHERE l.category_no = 9 AND email = #{value} AND l.behavior = 1
+		GROUP BY tag_name ORDER BY count(tag_name) DESC
+	</select>
+</mapper>

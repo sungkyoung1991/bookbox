@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="TagMapper">
+	
+	<resultMap id="tagSelectMap" type="tag">
+		<result property="tagName"			column="tag_name"	jdbcType="VARCHAR"/>
+		<result property="tagNo"			column="tag_no"		jdbcType="INTEGER" />		
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert id="addTag" parameterType="tag" useGeneratedKeys="true" keyProperty="tagNo">
+	 	INSERT
+		INTO tag( tag_name ) 
+		VALUES ( #{tagName} )
+	</insert>
+	
+	<select id="getTag" parameterType="tag" resultMap="tagSelectMap">
+		SELECT tag_no, tag_name
+		FROM tag
+		<where>
+			<if test="tagNo != 0">
+				tag_no = #{tagNo}
+			</if>
+			<if test="tagName != null">
+				AND tag_name = #{tagName}
+			</if>
+		</where>
+	</select>
+
+	<insert id="addTagGroup" parameterType="map">
+		INSERT
+		INTO tag_group ( tag_no, category_no, target_no )
+		VALUES ( #{tagNo}, #{categoryNo}, #{targetNo} )
+	</insert>
+	
+	<select id="getTagList" parameterType="tag" resultMap="tagSelectMap">
+		SELECT tag_no, tag_name
+		FROM tag
+		WHERE tag_name LIKE "%${tagName}%"
+	</select>
+	
+	<select id="getTagGroupList" parameterType="map" resultMap="tagSelectMap">
+		SELECT t.tag_no, t.tag_name
+		FROM tag t, tag_group tg
+		WHERE tg.category_no = #{categoryNo} AND tg.target_no = #{targetNo} AND t.tag_no = tg.tag_no
+	</select>
+	
+	<delete id="deleteTagGroup" parameterType="map">
+		DELETE 
+		FROM tag_group
+		WHERE category_no = #{categoryNo} AND target_no = #{targetNo}
+	</delete>
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans 	xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd">												 
+	
+	<!-- 구글 사용 -->
+	<bean id="javaMailSenderImplGoogle" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.google.host}"></property>
+		<property name="port" value="${mail.google.port}"></property>
+		<property name="username" value="${mail.google.userName}"></property>
+		<property name="password" value="${mail.google.password}"></property>
+		<property name="protocol" value="${mail.google.protocol}"></property>
+		<property name="javaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>
+			</props>
+		</property>
+		
+	</bean>
+	
+	<!--  네이버 imap/smtp 사용  587포트 사용 protocol : smtp-->
+	<bean id="javaMailSenderImplNaver" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<property name="host" value="${mail.naver.host}"></property>
+		<property name="port" value="${mail.naver.port}"></property>
+		<property name="username" value="${mail.naver.userName}"></property>
+		<property name="password" value="${mail.naver.password}"></property>
+		<property name="protocol" value="${mail.naver.protocol}"></property>
+		<property name="JavaMailProperties">
+			<props>
+				<prop key="mail.smtp.auth">true</prop>
+				<prop key="mail.smtp.starttls.enable">true</prop>		
+				<prop key="mail.debug">true</prop>
+			</props>
+		</property>
+		
+	</bean>
+
+	
+ </beans>

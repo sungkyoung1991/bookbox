@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="FundingMapper">
+	
+	<resultMap id="fundingSelectMap" type="funding">
+		<result property="fundingNo" 							column="funding_no" 										jdbcType="INTEGER"/>
+		<result property="fundingTitle"						column="funding_title" 									jdbcType="VARCHAR" />
+		<result property="fundingIntro" 						column="funding_intro" 								jdbcType="VARCHAR" />
+		<result property="fundingRegDate" 				column="reg_date" 											jdbcType="DATE" />
+		<result property="fundingEndDate" 				column="end_date"						 					jdbcType="DATE" />
+		<result property="fundingTarget" 					column="funding_target" 								jdbcType="INTEGER" />
+		<result property="perFunding" 						column="per_funding" 									jdbcType="INTEGER" />
+		<result property="fundingFileName" 				column="funding_file_name" 						jdbcType="VARCHAR" />
+		<result property="fundingOriginName" 		column="funding_origin_name" 					jdbcType="VARCHAR" />
+		<result property="active" 									column="active" 												jdbcType="INTEGER" />			
+					<!-- <collection property="payInfoList" javaType="java.util.ArrayList" ofType="payInfo" column="{fundingNo=funding_no}" select="getPayInfoList"/> -->					
+	</resultMap>
+
+	<resultMap id="payInfoSelectMap" type="payInfo">
+		<result property="payInfoNo" 							column="pay_no" 										jdbcType="INTEGER"/>
+		<result property="fundingNo"							column="funding_no" 										jdbcType="INTEGER" />
+		<result property="tid" 											column="tid" 														jdbcType="VARCHAR" />
+		<result property="uid" 											column="uid" 														jdbcType="VARCHAR" />
+		<result property="userName" 							column="user_name" 										jdbcType="VARCHAR" />
+		<result property="postCode" 							column="post_code"						 							jdbcType="VARCHAR" />
+		<result property="addr" 										column="addr"						 							jdbcType="VARCHAR" />
+		<result property="addrDetail" 						column="addr_detail"						 							jdbcType="VARCHAR" />
+		<result property="phone" 									column="phone" 												jdbcType="VARCHAR" />
+		<result property="regDate" 								column="reg_date" 											jdbcType="DATE" />
+					<!-- <association property="email" 			javaType="user" 					resultMap="UserMapper.userSelectMap"/> -->
+										
+	</resultMap>	
+	
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="addFunding"		parameterType="funding" useGeneratedKeys="true" keyProperty="fundingNo" keyColumn="funding_no">
+	 	INSERT
+		INTO funding(funding_title,  creation_no, funding_intro, end_date, funding_target, per_funding, funding_file_name, funding_origin_name) 
+		VALUES	 (#{fundingTitle},
+						  #{creation.creationNo},
+						  #{fundingIntro},
+						  #{fundingEndDate},
+						  #{fundingTarget},
+						  #{perFunding},
+						  #{fundingFileName},
+						  #{fundingOriginName})
+	
+	 </insert>
+	 
+	<!-- SQL : INSERT -->
+	<insert 	id="addPayInfo"		parameterType="payInfo" useGeneratedKeys="true" keyProperty="payInfoNo" keyColumn="pay_no">
+	 	INSERT
+		INTO pay_info(email, funding_no, tid, uid, user_name, post_code, addr, addr_detail , phone) 
+		VALUES	 (#{user.email},
+						  #{fundingNo},
+						  #{tid},
+						  #{uid},
+						  #{userName},
+						  #{postCode},
+						  #{addr},
+						  #{addrDetail},
+						  #{phone})
+						 
+	
+	 </insert>	 
+	 
+	  <!-- SQL : SELECT ONE -->
+	 <select 	id="getFunding"	parameterType="funding"	 resultMap="fundingSelectMap">
+		SELECT
+			funding_no, funding_title, c.creation_no AS 'creation.creationNo', 
+			funding_intro, f.reg_date, per_funding,
+			end_date, funding_target, 
+			funding_file_name, funding_origin_name, 
+			f.active, c.author AS 'creation.creationAuthor.email'
+		
+		From
+			funding f
+			LEFT JOIN creation c ON f.creation_no = c.creation_no
+					
+		<where>
+			funding_no = #{fundingNo}
+		<if test="active==0">
+			AND f.active = 1
+		</if>
+		</where>
+	 </select>
+	 
+	 	  <!-- SQL : SELECT ONE -->
+	 <select 	id="getDoFunding"	parameterType="map"	 resultType="int">
+		SELECT COUNT(*)
+		From 	funding
+		WHERE			
+			creation_no = #{targetNo} AND active = 1
+	 </select>
+	 
+	 	 	  <!-- SQL : SELECT ONE -->
+	 <select 	id="getPayInfo"	parameterType="payInfo"	 resultMap="payInfoSelectMap">
+		SELECT
+		pay_no, email, funding_no, tid, user_name, post_code, addr, addr_detail, phone
+		FROM pay_info
+					
+		<where>
+			funding_no = #{fundingNo}
+			AND email= #{user.email}		
+		</where>
+	 </select>
+	 
+	 	 	  <!-- SQL : DELETE -->
+	 <delete 	id="deletePayInfo"	parameterType="payInfo"	>
+		DELETE 
+		FROM pay_info
+		<where>
+			pay_no = #{payInfoNo}
+		</where>
+	 </delete>	 
+	 
+	 	 <!-- SQL : UPDATE -->
+	 <update	id="updatePayInfo"	parameterType="payInfo" >
+	   	UPDATE pay_info
+	   	<set>
+	  	 	<if test ="userName != null">
+	   			user_name 	= #{userName} ,
+	   		</if>
+	   		<if test ="postCode != null">
+	   			post_code = #{postCode},
+	   		</if>
+	   		<if test ="addr != null">
+	   			addr = #{addr},
+	   		</if>
+	   		<if test ="addrDetail != null">
+	   			addr_detail = #{addrDetail},
+	   		</if>
+	   		<if test ="phone != null">
+	   			phone = #{phone},
+	   		</if>
+	   	</set>
+	   	<where>
+	   		pay_no = #{payInfoNo}
+	   	</where>
+	
+	 </update>
+	 
+	 	 <!-- SQL : UPDATE -->
+	 <update	id="updateFunding"	parameterType="funding" >
+	   	UPDATE funding
+	   	<set>
+	  	 	active=0
+	   	</set>
+	   	<where>
+	   		funding_no = #{fundingNo}
+	   	</where>
+	</update>	 
+	 
+	 
+<!-- SQL : SELECT getFundingLIST -->
+	<select  id="getFundingList"  parameterType="map"	resultMap="fundingSelectMap">
+		
+		SELECT
+			f.funding_no, f.funding_title, f.creation_no AS  'creation.creationNo', 
+			f.funding_intro, f.reg_date, f.per_funding,
+			f.end_date, f.funding_target, 
+			f.funding_file_name, f.funding_origin_name, 
+			f.active
+			
+
+		FROM 
+			funding f
+			LEFT JOIN creation c ON f.creation_no = c.creation_no
+						
+		<where>
+		<!--1 : 해당 작품 펀딩리스트조회  2: user가 등록한 펀딩리스트 3.user가 등록한 펀딩 중 마감된 펀딩리스트-->
+		<if test ="search != null">
+		<if test="search.condition != 4">		
+			f.active =1
+		</if> 
+			<if test="search.condition==1">
+				AND	f.creation_no = #{targetNo}	
+			</if>
+			<if test="search.condition==2">
+				AND	c.author = #{user.email}	
+			</if>
+			<if test="search.condition == 4">		
+				 f.active =0
+				AND	c.author = #{user.email}
+			</if> 
+		</if>
+		</where>
+		ORDER BY f.reg_date DESC 
+		
+		<if test="page != null">
+		LIMIT #{page.startRow}, #{page.pageSize}
+		</if>
+		
+	</select>
+	
+	<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalFundingCount"  parameterType="map"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM 
+	  		funding f
+			LEFT JOIN creation c ON f.creation_no = c.creation_no 
+		
+		<where>
+		
+		<!--1 : 해당 작품 펀딩리스트조회  2: user가 등록한 펀딩리스트 3. user가 등록한 펀딩 중마감된 펀딩리스트-->
+		<if test ="search != null">
+			<if test="search.condition != 4">		
+			f.active =1
+			</if> 
+			<if test="search.condition==1">
+				AND	f.creation_no = #{targetNo}	
+			</if>
+			<if test="search.condition==2">
+				AND	c.author = #{user.email}	
+			</if>
+			<if test="search.condition == 4">		
+				f.active =0
+				AND	c.author = #{user.email}
+			</if> 
+		</if>	
+		
+		</where>		
+	 </select>
+	 
+	 <!-- SQL : SELECT getPayInfoLIST -->
+	<select  id="getFundingUserList"  parameterType="map"	resultMap="payInfoSelectMap">
+		
+		SELECT
+			pay_no, email AS 'user.email', funding_no, user_name, post_code, addr, addr_detail, phone, reg_date,tid, uid
+
+		FROM 
+			pay_info 
+			
+		<where>
+					funding_no = #{fundingNo}	
+			<if test="search != null and search.condition != null">
+			
+					<if test="search.condition == 0 and search.keyword !=''">
+							email LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 1 and search.keyword !=''">
+							user_name LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 2 and search.keyword !=''">
+							addr LIKE '%${search.keyword}%'
+					</if>
+
+			</if>
+			
+		</where>
+		ORDER BY reg_date ASC 
+		
+		<if test="page != null">
+		LIMIT #{page.startRow}, #{page.pageSize}
+		</if>
+		
+	</select>
+	
+		<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalFundingUserCount"  parameterType="map"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM (SELECT
+							pay_no, email AS 'payInfo.user.email', funding_no, user_name, post_code, addr, addr_detail, phone, reg_date
+						FROM  pay_info 
+					<where>
+							funding_no = #{fundingNo}	
+							<if test="search != null and search.condition != null">
+							
+									<if test="search.condition == 0 and search.keyword !=''">
+											email LIKE '%${search.keyword}%'
+									</if>
+									<if test="search.condition == 1 and search.keyword !=''">
+											user_name LIKE '%${search.keyword}%'
+									</if>
+									<if test="search.condition == 2 and search.keyword !=''">
+											addr LIKE '%${search.keyword}%'
+									</if>
+				
+							</if>
+				</where>
+		) vt		
+	
+	 </select>
+	 
+	 
+	 <!-- SQL : SELECT getCancelFundingLIST -->
+	<select  id="getCancelFundingList"  resultMap="fundingSelectMap">
+		
+		SELECT
+			f.funding_no, f.funding_title, f.creation_no AS  'creation.creationNo', 
+			f.funding_intro, f.reg_date, f.per_funding,
+			f.end_date, f.funding_target, 
+			f.funding_file_name, f.funding_origin_name, 
+			f.active
+		FROM 
+			funding f
+			
+		WHERE f.end_date = curdate( )
+				
+	</select>
+
+</mapper>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="CreationMapper">
+	
+	<resultMap id="creationSelectMap" type="creation">
+		<result property="creationNo" 					column="creation_no" 										jdbcType="INTEGER"/>
+		<result property="creationTitle"					column="creation_title" 										jdbcType="VARCHAR" />
+		<result property="creationIntro" 				column="creation_intro" 									jdbcType="VARCHAR" />
+		<result property="creationHead" 				column="creation_head" 									jdbcType="VARCHAR" />
+		<result property="creationFileName" 					column="creation_file_name" 				jdbcType="VARCHAR" />
+		<result property="creationOriginName" 		column="creation_origin_name" 		jdbcType="VARCHAR" />
+		<result property="active" 		column="active" 		jdbcType="INTEGER" />			
+					<association property="creationAuthor" 			javaType="user" 					resultMap="UserMapper.userSelectMap"/>
+					<collection property="tagList" javaType="java.util.ArrayList" ofType="tag" column="{categoryNo=category_no,targetNo=creation_no}" select="TagMapper.getTagGroupList"/>					
+					
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="addCreation"		parameterType="creation" useGeneratedKeys="true" keyProperty="creationNo" keyColumn="creation_no">
+	 	INSERT
+		INTO creation(creation_title,  creation_intro, author, creation_head, creation_file_name, creation_origin_name) 
+		VALUES	 (#{creationTitle},
+						  #{creationIntro},
+						  #{creationAuthor.email},
+						  #{creationHead},
+						  #{creationFileName},
+						  #{creationOriginName})
+	
+	 </insert>
+	 
+	  <!-- SQL : SELECT ONE -->
+	 <select 	id="getCreation"	parameterType="map"	 resultMap="creationSelectMap">
+		SELECT
+		c.creation_no, 
+		c.author email,
+		u.nickname, 
+		c.creation_title, 
+		c.creation_head, 
+		c.creation_file_name, 
+		c.creation_origin_name, 
+		c.creation_intro, 
+		'1' AS category_no,
+		c.active
+		
+		From
+			user u
+			LEFT JOIN creation c ON u.email = c.author		
+		<where>
+			creation_no = #{targetNo}
+	
+		<if test="active==0">
+			AND c.active = 1
+		</if>
+		</where>
+	 </select>
+	 
+	 
+	 <!-- SQL : UPDATE -->
+	 <update	id="updateCreation"	parameterType="creation" >
+	   	UPDATE creation
+	   	<set>
+	  	 	<if test ="creationTitle != null">
+	   			creation_title 	= #{creationTitle} ,
+	   		</if>
+	   		<if test ="creationIntro != null">
+	   			creation_intro = #{creationIntro},
+	   		</if>
+	   		<if test ="creationHead != null">
+				creation_head		= #{creationHead},
+			</if>
+			<if test ="creationFileName != null">
+				creation_file_name 	= #{creationFileName},
+			</if>
+			<if test ="creationOriginName != null">
+				creation_origin_name 	= #{creationOriginName},
+			</if>
+			<if test ="active == -1">
+				active 	= #{active}
+			</if>
+	   	</set>
+	   	<where>
+	   		creation_no = #{creationNo}
+	   	</where>
+	   	 
+	 </update>
+	 
+	 	<!-- SQL : INSERTCreationSubscribe -->
+	<insert 	id="doCreationSubscribe"		parameterType="map" >
+	 	INSERT
+		INTO subscribe (creation_no, email) 
+		VALUES	 (#{targetNo},  #{user.email})
+	
+	 </insert>
+	 
+	 <!-- SQL : DeleteCreationSubscribe -->
+	<insert 	id="deleteCreationSubscribe"		parameterType="map" >
+	 	DELETE
+		FROM subscribe  
+		WHERE	 creation_no = #{targetNo} AND  
+						 email = #{user.email}
+	
+	 </insert>
+	 
+	 <!-- SQL :GetCreationSubscribe -->
+	 <select id="getCreationSubscribe" parameterType="map" resultType="int">
+	SELECT COUNT(*)
+	FROM	subscribe
+    WHERE
+	    creation_no =	#{targetNo} AND  
+		email = #{user.email} 
+	</select>
+	 
+	 	<!-- SQL : SELECT CreationLIST -->
+	<select  id="getCreationList"  parameterType="map"	resultMap="creationSelectMap">
+		
+		SELECT
+			c.creation_no, c.author email, 
+			c.creation_title, 	c.creation_head, 
+			c.creation_file_name, c.creation_origin_name, 
+			c.creation_intro, c.active,
+			'1' AS category_no,
+	
+			u.nickname
+
+		FROM 
+			creation c
+			LEFT JOIN user u ON c.author = u.email
+			<if test="search !=null and search.condition == 2">
+				LEFT JOIN tag_group tg ON c.creation_no = tg.target_no 
+				LEFT JOIN tag  t ON tg.tag_no =t.tag_no AND t.tag_name IN ('픽션', '논픽션')
+			</if>
+
+		<where>
+						
+			<if test="search != null and search.condition != null">
+					<!--0: 창작작품 제목  -->
+					<if test="search.condition == 0 and search.keyword !=''">
+		 				c.creation_title LIKE '%${search.keyword}%'
+					</if>
+					<!-- 1: 작품작성자 -->
+					<if test="search.condition == 1 and search.keyword !=''">
+		 				u.nickname LIKE '%${search.keyword}%'
+					</if>
+					<!--2: 태그  -->
+					<if test="search.condition == 2 and search.keyword !=''">
+		 				t.tag_name IN (#{search.keyword}) 
+					</if>
+					<!-- 3:펀딩등록 Nav  4:글쓰기(작성글리스트 paging(X)) Nav  5:작성글리스트조회(paging)  6:구독글조회-->
+					<if test="search.condition == 3 or search.condition == 4 or search.condition==5">
+		 				c.author = #{user.email} 
+					</if>
+					<if test="search.condition==6"></if>
+			</if>
+			
+				AND c.active 	= 1
+			
+					
+		</where>
+		GROUP BY
+			c.creation_no, email, 
+			c.creation_title, 	c.creation_head, 
+			c.creation_file_name, c.creation_origin_name, 
+			c.creation_intro, c.active,
+			category_no,
+	
+			u.nickname
+		
+		ORDER BY c.reg_date DESC 
+		
+		<if test="page != null">
+			<if test="search != null">
+				<if test ="search.condition !=3 or search.condition !=4">
+					LIMIT #{page.startRow}, #{page.pageSize}
+				</if>
+			</if>
+		</if>
+		
+<!-- 				SELECT vt.*
+		FROM
+		(SELECT
+			c.creation_no, c.author email, 
+			c.creation_title, 	c.creation_head, 
+			c.creation_file_name, c.creation_origin_name, 
+			c.creation_intro, c.active,
+			'1' AS category_no,
+	
+			u.nickname
+
+		FROM 
+			creation c
+			LEFT JOIN user u ON c.author = u.email
+
+		<where>
+				
+			<if test="search.condition != null">
+					<if test="search.condition == 0 and search.keyword !=''">
+		 				c.creation_title LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 1 and search.keyword !=''">
+		 				u.nickname LIKE '%${search.keyword}%'
+					</if>
+			</if>
+		</where>
+		LIMIT #{page.startRow}, #{page.pageSize} ) vt
+			LEFT JOIN tag_group tg ON vt.creation_no = tg.target_no 
+			LEFT JOIN tag  t ON tg.tag_no =t.tag_no
+			
+			<where>
+				<if test="search.condition != null">
+					<if test="search.condition == 2 and search.keyword !=''">
+		 				t.tag_name LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 3 and search.keyword !=''">
+		 				t.tag_name LIKE '%${search.keyword}%' OR 
+		 				u.nickname LIKE '%${search.keyword}%' OR 
+		 				t.tag_name LIKE '%${search.keyword}%' 
+					</if>
+				</if>
+			</where> -->
+		
+	</select>
+	
+	
+	
+
+	<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalCreationCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	SELECT
+							c.creation_no, c.author email, 
+							c.creation_title, 	c.creation_head, 
+							c.creation_file_name, c.creation_origin_name, 
+							c.creation_intro, c.active,
+							'1' AS category_no,
+					
+							u.nickname
+				
+						FROM 
+							creation c
+							LEFT JOIN user u ON c.author = u.email
+							LEFT JOIN tag_group tg ON c.creation_no = tg.target_no 
+							LEFT JOIN tag  t ON tg.tag_no =t.tag_no
+				
+						<where>
+								
+							<if test="condition != null">
+									<if test="condition == 0 and keyword !=''">
+						 				c.creation_title LIKE '%${keyword}%'
+									</if>
+									<if test="condition == 1 and keyword !=''">
+						 				u.nickname LIKE '%${keyword}%'
+									</if>
+									<if test="condition == 2 and keyword !=''">
+						 				t.tag_name LIKE '%${keyword}%'
+									</if>
+									<if test="condition == 5">
+						 				c.author = #{keyword} 
+									</if>
+									<if test="condition==6"></if>
+							</if>
+						</where>
+						GROUP BY
+							c.creation_no, email, 
+							c.creation_title, 	c.creation_head, 
+							c.creation_file_name, c.creation_origin_name, 
+							c.creation_intro, c.active,
+							category_no,
+					
+							u.nickname
+					) countTable						
+	 </select>
+
+</mapper>

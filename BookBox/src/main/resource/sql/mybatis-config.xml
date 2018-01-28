@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration
+		PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-config.dtd">
+		
+<configuration>
+
+	<settings>
+		<setting name="callSettersOnNulls" value="false"/>
+	</settings>
+	
+	<typeAliases>
+		<typeAlias alias="user" type="com.bookbox.service.domain.User"/>
+		<typeAlias alias="board" type="com.bookbox.service.domain.Board"/>
+		<typeAlias alias="booklog" type="com.bookbox.service.domain.Booklog"/>
+		<typeAlias alias="chatRoom" type="com.bookbox.service.domain.ChatRoom"/>
+		<typeAlias alias="comment" type="com.bookbox.service.domain.Comment"/>
+		<typeAlias alias="creation" type="com.bookbox.service.domain.Creation"/>
+		<typeAlias alias="funding" type="com.bookbox.service.domain.Funding"/>
+		<typeAlias alias="payInfo" type="com.bookbox.service.domain.PayInfo"/>
+		<typeAlias alias="posting" type="com.bookbox.service.domain.Posting"/>
+		<typeAlias alias="writing" type="com.bookbox.service.domain.Writing"/>
+		<typeAlias alias="book" type="com.bookbox.service.domain.Book"/>
+		<typeAlias alias="recommend" type="com.bookbox.service.domain.Recommend"/>
+		<typeAlias alias="report" type="com.bookbox.service.domain.Report"/>
+	
+		<typeAlias alias="search" type="com.bookbox.common.domain.Search"/>
+		<typeAlias alias="tag" type="com.bookbox.common.domain.Tag"/>
+		<typeAlias alias="log" type="com.bookbox.common.domain.Log"/>
+		<typeAlias alias="reply" type="com.bookbox.common.domain.Reply"/>
+		<typeAlias alias="grade" type="com.bookbox.common.domain.Grade"/>
+		<typeAlias alias="like" type="com.bookbox.common.domain.Like"/>
+		<typeAlias alias="uploadFile" type="com.bookbox.common.domain.UploadFile"/>
+			
+	<!-- 	<typeAlias alias="const" type="com.bookbox.common.domain.Const"/>
+		<typeAlias alias="page" type="com.bookbox.common.domain.Page"/>
+	
+		<typeAlias alias="subscription" type="com.bookbox.common.domain.Subscribe"/>	 -->
+	</typeAliases>
+
+
+	<mappers>
+		<mapper resource="sql/UserMapper.xml"/>
+		<mapper resource="sql/CommunityMapper.xml"/>
+		<mapper resource="sql/PostingMapper.xml"/>
+		<mapper resource="sql/CommonMapper.xml"/>
+		<mapper resource="sql/BooklogMapper.xml"/>
+		<mapper resource="sql/CreationMapper.xml"/>
+		<mapper resource="sql/WritingMapper.xml"/>
+		<mapper resource="sql/FundingMapper.xml"/>
+		
+		<mapper resource="sql/TagMapper.xml"/>
+		<mapper resource="sql/LogMapper.xml"/>
+	</mappers>
+	
+</configuration>

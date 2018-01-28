@@ -1,0 +1,74 @@
+#starWrap ul:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+
+#starWrap ul li {
+	width: 16px;
+	height: 15px;
+	float: left;
+	background: url('../images/bgStarSolo.png') no-repeat;
+	cursor: pointer;
+	display: inline-block;
+}
+
+#starWrap.star1 .s1 {
+	background-position: 0 -15px;
+}
+
+#starWrap.star2 .s1, #starWrap.star2 .s2 {
+	background-position: 0 -15px;
+}
+
+#starWrap.star3 .s1, #starWrap.star3 .s2, #starWrap.star3 .s3 {
+	background-position: 0 -15px;
+}
+
+#starWrap.star4 .s1, #starWrap.star4 .s2, #starWrap.star4 .s3, #starWrap.star4 .s4
+	{
+	background-position: 0 -15px;
+}
+
+#starWrap.star5 .s1, #starWrap.star5 .s2, #starWrap.star5 .s3, #starWrap.star5 .s4,
+	#starWrap.star5 .s5 {
+	background-position: 0 -15px;
+}
+
+/*///////////////// 마우스클릭/////////////////////// */
+#starWrapClick ul:after {
+	content: '';
+	display: block;
+	clear: both;
+}
+
+#starWrapClick ul li {
+	width: 16px;
+	height: 15px;
+	float: left;
+	background: url('../images/bgStarSolo.png') no-repeat;
+	cursor: pointer;
+}
+
+#starWrapClick.star1 .s1 {
+	background-position: 0 -15px;
+}
+
+#starWrapClick.star2 .s1, #starWrapClick.star2 .s2 {
+	background-position: 0 -15px;
+}
+
+#starWrapClick.star3 .s1, #starWrapClick.star3 .s2, #starWrapClick.star3 .s3
+	{
+	background-position: 0 -15px;
+}
+
+#starWrapClick.star4 .s1, #starWrapClick.star4 .s2, #starWrapClick.star4 .s3,
+	#starWrapClick.star4 .s4 {
+	background-position: 0 -15px;
+}
+
+#starWrapClick.star5 .s1, #starWrapClick.star5 .s2, #starWrapClick.star5 .s3,
+	#starWrapClick.star5 .s4, #starWrapClick.star5 .s5 {
+	background-position: 0 -15px;
+}

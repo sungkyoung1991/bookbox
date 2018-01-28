@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="PostingMapper">
+	
+	<resultMap id="postingSelectMap" type="posting">
+		<result property="postingNo" column="posting_no" jdbcType="INTEGER"/>
+		<result property="postingTitle" column="posting_title" jdbcType="VARCHAR"/>
+		<result property="postingContent" column="posting_content" jdbcType="VARCHAR"/>
+		<result property="postingRegDate" column="reg_date" jdbcType="VARCHAR"/>
+		<result property="postingUpdateDate" column="update_date" jdbcType="VARCHAR"/>
+		<result property="viewCount" column="count" jdbcType="INTEGER"/>
+		<association property="user" javaType="user">
+			<result property="email" column="email"/>
+			<result property="nickname" column="nickname"/>
+			<result property="booklogImage" column="booklog_image"/>
+		</association>
+		<collection property="postingFileList" ofType="uploadFile" column="{categoryNo=category_no,targetNo=posting_no}" select="CommonMapper.getUploadFileList"/>
+		<collection property="postingTagList" ofType="tag" column="{categoryNo=category_no,targetNo=posting_no}" select="TagMapper.getTagGroupList"/>
+	</resultMap>
+	
+	<resultMap id="postingListMap" type="posting">
+		<result property="postingNo" column="posting_no" jdbcType="INTEGER"/>
+		<result property="postingTitle" column="posting_title" jdbcType="VARCHAR"/>
+		<result property="postingContent" column="posting_content" jdbcType="VARCHAR"/>
+		<result property="postingRegDate" column="reg_date" jdbcType="VARCHAR"/>
+		<result property="postingUpdateDate" column="update_date" jdbcType="VARCHAR"/>
+		<result property="viewCount" column="count" jdbcType="INTEGER"/>
+		<association property="user" javaType="user">
+			<result property="email" column="email"/>
+			<result property="nickname" column="nickname"/>
+			<result property="booklogImage" column="booklog_image"/>
+		</association>
+		<collection property="postingFileList" ofType="uploadFile" column="{categoryNo=category_no,targetNo=posting_no}" select="getMainFile"/>
+		<collection property="postingTagList" ofType="tag" column="{categoryNo=category_no,targetNo=posting_no}" select="TagMapper.getTagGroupList"/>
+	</resultMap>
+	
+
+
+	<insert id="addPosting" parameterType="posting" useGeneratedKeys="true" keyProperty="postingNo">
+	 	INSERT
+		INTO 
+			posting( email, posting_title, posting_content ) 
+		VALUES 
+			( 
+				#{user.email}, #{postingTitle}, #{postingContent}
+			)
+	</insert>
+	
+	
+	<select id="getPosting" parameterType="posting" resultMap="postingSelectMap">
+		SELECT 
+			p.posting_no, p.email, p.posting_title, 
+			p.posting_content, p.reg_date, p.update_date, 
+			u.nickname, u.booklog_image, '5' category_no, vc.count
+		FROM 
+			posting p
+			LEFT OUTER JOIN user u ON p.email = u.email
+			LEFT OUTER JOIN (<include refid="viewCount"/>) vc ON p.posting_no = vc.target_no
+		WHERE 
+			p.posting_no = #{postingNo} 
+			AND p.active = 1
+	</select>
+	
+	<select id="getPostingList" parameterType="map" resultMap="postingListMap">
+		SELECT 
+			p.posting_no, p.email, u.nickname, 
+			p.posting_title, p.posting_content, 
+			p.reg_date, p.update_date, u.booklog_image,
+			'5' category_no, vc.count
+		FROM
+			posting p
+			LEFT JOIN user u ON p.email = u.email
+			LEFT OUTER JOIN (<include refid="viewCount"/>) vc ON p.posting_no = vc.target_no
+		<where>
+			p.active = 1
+			<if test="search.condition == 'booklog'">
+				AND p.email = #{search.keyword}
+			</if>
+		</where>
+		ORDER BY
+			<if test="search.condition == 'main'">
+				vc.count DESC,
+			</if>
+			p.posting_no DESC
+		LIMIT #{page.startRow}, #{page.pageSize}
+	</select>
+	
+	<select id="getMainFile" parameterType="map" resultMap="CommonMapper.uploadFileSelectMap">
+		SELECT
+			file_name, origin_name
+		FROM
+			upload_file
+		WHERE
+			category_no = #{categoryNo} AND target_no = #{targetNo} AND main_file = 1
+	</select>
+	
+	<update id="updatePosting" parameterType="posting">
+		UPDATE posting
+		<set>
+			<if test="postingTitle != null">
+				posting_title = #{postingTitle},
+			</if>
+			<if test="postingContent != null">
+				posting_content = #{postingContent},
+			</if>
+			update_date = CURRENT_TIMESTAMP
+		</set>
+		WHERE
+			posting_no = #{postingNo}
+	</update>
+	
+	<select id="getPostingCount" parameterType="search" resultType="int">
+		SELECT
+			COUNT(posting_no)
+		FROM
+			posting
+		<where>
+			<if test="keyword != null">
+				<if test="keyword != ''">
+					email = #{keyword}
+				</if>
+			</if>
+			AND active = 1
+		</where>
+	</select>
+	
+		
+	
+	<sql id="tagWiring">
+		SELECT
+			tg.tag_group_no, tg.tag_no, t.tag_name, tg.target_no
+		FROM
+			tag_group tg, tag t
+		WHERE
+			tg.tag_no = t.tag_no AND tg.category_no = 5
+	</sql>
+
+	<sql id="viewCount">
+		SELECT
+			count(*) count, target_no
+		FROM
+			log
+		WHERE
+			category_no = 5 AND behavior = 1
+		GROUP BY
+			target_no
+	</sql>
+
+</mapper>

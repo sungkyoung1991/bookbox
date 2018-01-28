@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							
+							http://www.springframework.org/schema/aop
+							http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="logWrite" class="com.bookbox.common.aspect.LogToDAO"/>
+	
+	<aop:config>
+
+		<aop:aspect ref="logWrite">
+			<aop:around pointcut="execution(* com.bookbox.service..*DAOImpl.*(..))" method="invoke"/>
+			<aop:around pointcut="execution(* com.bookbox.common.service..Tag*Impl.*(..))" method="invoke"/>
+			<aop:around pointcut="execution(* com.bookbox.service..*ServiceImpl.*(..))" method="logWrite"/>
+		</aop:aspect>
+
+	</aop:config>
+	
+</beans>

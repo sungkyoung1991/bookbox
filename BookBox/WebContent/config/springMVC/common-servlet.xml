@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:mvc="http://www.springframework.org/schema/mvc"
+		xmlns:task="http://www.springframework.org/schema/task"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context.xsd
+							
+							http://www.springframework.org/schema/mvc
+							http://www.springframework.org/schema/mvc/spring-mvc.xsd
+							
+							http://www.springframework.org/schema/task
+							http://www.springframework.org/schema/task/spring-task-3.1.xsd">
+							
+	<context:component-scan base-package="com.bookbox.web">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+
+	<mvc:annotation-driven/>
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="user/**"/>
+			<bean class="com.bookbox.common.web.LogonCheckInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<bean id="viewResolver"
+				class="org.springframework.web.servlet.view.InternalResourceViewResolver"/>
+	
+	<mvc:resources mapping="resources/**" location="resources/"/>
+	
+	
+	<!-- 선언적 예외처리는 일단 제외 -->	
+	
+	<bean id="multipartResolver"
+				class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="350000000" />			
+	</bean>
+	
+		<bean id = "uploadDirResource"  class="org.springframework.core.io.FileSystemResource">
+		<constructor-arg>
+			 <value>C:\\Users\\Bitcamp\\git\\BookBox\\WebContent\\resources\\upload_files\\images\\</value>
+		</constructor-arg>
+	</bean>
+
+
+	<task:scheduler id="jobScheduler" pool-size="10"/>
+	<task:annotation-driven scheduler="jobScheduler"/>
+	
+</beans>

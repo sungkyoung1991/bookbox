@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="UserMapper">
+	
+	<resultMap id="userSelectMap" type="user">
+		<result property="email" 					column="email" 						jdbcType="VARCHAR"/>
+		<result property="nickname"			column="nickname" 				jdbcType="VARCHAR" />
+		<result property="password" 			column="password" 				jdbcType="VARCHAR" />
+		<result property="gender" 				column="gender" 						jdbcType="VARCHAR" />
+		<result property="birth" 						column="birth" 							jdbcType="VARCHAR" />
+		<result property="role" 						column="role" 							jdbcType="VARCHAR" />
+		<result property="outerAccount" 	column="outer_account" 		jdbcType="INTEGER" />	
+		<result property="active" 					column="active" 						jdbcType="INTEGER" />	
+		<result property="certificationNo" 					column="certification_no" 						jdbcType="INTEGER" />	
+		<result property="booklogImage"			column="booklog_image"		jdbcType="VARCHAR" />
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert 	id="addUser"		parameterType="user" >
+	 	INSERT
+		INTO user( email , nickname , password , gender , birth,  outer_account, active, booklog_name, booklog_intro ) 
+		VALUES	 (	#{email} , 
+							#{nickname} , 
+							#{password} , 
+							#{gender} ,
+							 #{birth}, 
+							 #{outerAccount}, 
+							 #{active},
+							 '${nickname}님의 북로그',
+							 '${nickname}님의 북로그 입니다.')
+
+		
+		
+	 </insert>
+	 
+	 
+	 <!-- SQL : SELECT ONE -->
+	 <select 	id="getUser"	parameterType="user"	 resultMap="userSelectMap">
+		SELECT
+		email , password, nickname , gender , birth, role, outer_account, active, certification_no, booklog_image	
+		FROM user 
+		<where>
+		 
+		<choose>
+			<when test="email==null and nickname != null">
+		  		nickname= #{nickname} COLLATE utf8_bin
+			</when>
+			<otherwise>
+			email = #{email}
+			</otherwise>
+		</choose>
+		
+		<if test="active==0 and certificationNo == 0">
+			AND active = 1
+		</if>
+			
+		</where>
+	 </select>
+	 
+	 
+	 <!-- SQL : UPDATE -->
+	 <update	id="updateUser"	parameterType="user" >
+	   	UPDATE user
+	   	<set>
+	  	 	<if test ="nickname != null">
+	   			nickname 	= #{nickname} ,
+	   		</if>
+	   		<if test ="password != null">
+	   			password = #{password},
+	   		</if>
+	   		<if test ="gender != null">
+				gender		= #{gender},
+			</if>
+			<if test ="birth != null">
+				birth 			= #{birth}
+			</if>
+	   	</set>
+	   	<where>
+	   		email = #{email}
+	   	</where>
+	   	 
+	 </update>
+	 
+	 <!-- SQL : updateActive -->
+	 <update	id="updateActive"	parameterType="map" >
+	   	UPDATE user
+	   	<set>
+	   		active 			= #{active},
+			certification_no =#{certificationNo}
+	   	</set>
+	   	WHERE email = #{email}
+	   
+	 </update>	
+	 
+	  <!-- SQL : SELECT UserLIST -->
+	<select  id="getUserList"  parameterType="map"	resultMap="userSelectMap">
+		
+		SELECT
+			email , nickname, gender , birth,  outer_account, active, booklog_image
+		FROM user  
+		
+		<where>
+				
+			<if test="search.condition != null">
+					<if test="search.condition == 0 and search.keyword !=''">
+		 				active LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 1 and search.keyword !=''">
+		 				outer_account LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 2 and search.keyword !=''">
+		 				email LIKE '%${search.keyword}%'
+					</if>
+					<if test="search.condition == 3 and search.keyword !=''">
+		 				nickname LIKE '%${search.keyword}%'
+					</if>
+			</if>
+		</where>
+			
+		LIMIT #{page.startRow}, #{page.pageSize}
+	</select>
+	 
+	 
+
+	<!-- SQL : SELECT ROW Count -->	 
+	 <select  id="getTotalCount"  parameterType="search"	 resultType="int">
+	  	SELECT COUNT(*)
+	  	FROM(	SELECT email , nickname , birth, gender
+						FROM user ) countTable						
+	 </select>
+
+</mapper>

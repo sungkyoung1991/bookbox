@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="LogMapper">
+	
+	<resultMap id="logSelectMap" type="log">
+		<result property="logRegDate" column="reg_date"	jdbcType="DATE"/>
+		<result property="categoryNo" column="category_no"		jdbcType="INTEGER" />
+		<result property="targetName" column="target_name" jdbcType="VARCHAR"/>
+		<result property="targetNo" column="target_no" jdbcType="INTEGER"/>
+		<result property="behavior" column="behavior" jdbcType="INTEGER"/>
+		<result property="addBehavior" column="add_behavior" jdbcType="INTEGER"/>
+		<association property="user" javaType="user">
+			<result property="email" column="email"/>
+			<result property="nickname" column="nickname"/>
+		</association>
+	</resultMap>
+	
+	
+	<!-- SQL : INSERT -->
+	<insert id="addLog" parameterType="log">
+	 	INSERT
+		INTO log( email, category_no, behavior, add_behavior, target_no ) 
+		VALUES ( 
+			#{user.email}, #{categoryNo}, #{behavior},
+			<if test="addBehavior != -1"> #{addBehavior}, </if>
+			<if test="addBehavior == -1"> NULL, </if>
+			#{targetNo}
+		)
+	</insert>
+
+	<select id="getLogList" parameterType="user" resultMap="logSelectMap">
+		SELECT l.email, u.nickname, MAX(l.reg_date) 'reg_date', l.target_no, l.add_behavior, l.behavior, l.category_no
+		FROM log l, user u
+		WHERE l.email = #{email} AND l.email = u.email
+		GROUP BY l.email, u.nickname, date(l.reg_date), l.target_no, l.add_behavior, l.behavior, l.category_no
+		ORDER BY reg_date DESC
+		LIMIT 10 OFFSET #{active}
+	</select>
+	
+ 	<select id="getTargetName" parameterType="map" resultType="String">
+		SELECT 
+			<if test="category != 'booklog'">${category}_title</if>
+			<if test="category == 'booklog'">${category}_name</if>
+		FROM 
+			<if test="category != 'booklog'">${category}</if>
+			<if test="category == 'booklog'">user</if>
+		WHERE ${category}_no = #{targetNo}
+	</select>
+
+</mapper>

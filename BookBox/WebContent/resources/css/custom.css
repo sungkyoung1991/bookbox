@@ -1,0 +1,535 @@
+@font-face{
+	font-family: NanumGothic;
+	src: url(NanumFont_TTF_ALL/NanumGothic.ttf) format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+@font-face{
+	font-family: NanumGothic;
+	src: url(NanumFont_TTF_ALL/NanumGothicBold.ttf) format('truetype');
+	font-weight: bold;
+	font-style: normal;
+}
+@font-face{
+	font-family: NanumBrush;
+	src: url(NanumFont_TTF_ALL/NanumBrush.ttf) format('truetype');
+}
+@font-face{
+	font-family: NanumPen;
+	src: url(NanumFont_TTF_ALL/NanumPen.ttf) format('truetype');
+}
+@font-face{
+	font-family: NanumMyeongjo;
+	src: url(NanumFont_TTF_ALL/NanumMyeongjo.ttf) format('truetype');
+}
+@font-face{
+	font-family: JejuGothic;
+	src: url(JejuFont_TTF_ALL/JejuGothic.ttf) format('truetype');
+}
+@font-face{
+	font-family: JejuHallasan;
+	src: url(JejuFont_TTF_ALL/JejuHallasan.ttf) format('truetype');
+}
+@font-face{
+	font-family: JejuMyeongjo;
+	src: url(JejuFont_TTF_ALL/JejuMyeongjo.ttf) format('truetype');
+}
+body, html{
+	min-height: 100%;
+	height: 100%;
+	color: #777;
+	line-height: 1.8;
+	font-family: JejuGothic, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+body{
+	padding-top: 50px;
+}
+
+header{
+	margin-bottom: 5px;
+	height: 500px;
+}
+.parallax{
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: 0.75;
+}
+.display-middle{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	   -moz-transform: translate(-50%, -50%);
+			transform: translate(-50%, -50%);
+}
+.bookbox-relative{
+	position: relative;
+}
+span.tag{
+	margin-right: 2px; 
+	border: 1px solid;
+	border-color: #bbbbbb;
+	border-radius: 15px;
+	padding: 4px;
+	font-weight: bold;
+	cursor: pointer;
+}
+/******* Toolbar CSS Start *******/
+.bookbox-navigation{
+	position: fixed;
+	top: 0;
+	height: 45px;
+	width: 100%;
+	z-index: 100;
+	background-color: rgba(255, 255, 255, 1);
+	padding: 2px 10px;
+	-webkit-box-shadow: 0px 2px 5px 0px;
+	   -moz-box-shadow: 0px 2px 5px 0px;
+			box-shadow: 0px 2px 5px 0px;
+}
+.bookbox-navigation > *{
+	position: relative;
+	display: inline-block;
+	color: #727272;
+}
+.bookbox-navigation *{
+	vertical-align: middle;
+	height: 100%;
+}
+.navbtn-group, .search-group{
+	width: fit-content;
+}
+.navbtn-group > *, .search-group > *{
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+}
+.navbtn-group > *:hover{
+	
+}
+.navbtn-group{
+	float: left;
+}
+.search-group{
+	float: right;
+}
+
+.navbtn, .homebtn{
+	margin-right: 5px;
+	width: fit-content;
+}
+.homebtn{
+	/* cursor: url('https://icongr.am/fontawesome/hand-o-up.svg?size=25'), auto; */
+}
+.homebtn span{
+	top: 50%;
+	-webkit-transform: translate(0, -50%);
+	   -moz-transform: translate(0, -50%);
+			transform: translate(0, -50%);
+}
+.bookbox-brand{
+	 font-size: 20px;
+	 letter-spacing: 4px;
+}
+.content-title{
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: fit-content;
+	display: block;
+	cursor: pointer;
+	-webkit-transform: translate(-50%, 0);
+	   -moz-transform: translate(-50%, 0);
+			transform: translate(-50%, 0);
+}
+.content-title img{
+	height: 39px;
+	width: 39px;
+}
+.content-title > *{
+	-webkit-transform: translate(0, 3px);
+	   -moz-transform: translate(0, 3px);
+			transform: translate(0, 3px);
+}
+.content-title > span{
+	font-size: 17px;
+}
+.bookbox-search{
+	width: fit-content;
+}
+div.bookbox-search.search-form-group{
+	width: 0;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	-webkit-transition: 0.5s;
+	   -moz-transition: 0.5s;
+			transition: 0.5s;
+}
+.bookbox-search.search-form{
+	margin: 4px 0;
+	text-decoration: none;
+	height: 28px;
+	color: #727272;
+	display: inline-block;
+	background-color: rgba(0, 0, 0, 0.08);
+	box-shadow: none;
+	border-bottom: 1px solid;
+	-webkit-transition: 0.5s;
+	   -moz-transition: 0.5s;
+			transition: 0.5s;
+}
+select.search-form{
+	width: 0;
+	padding-right: 16px;
+}
+input.search-form{
+	width: 0;
+}
+input.search-form, select.search-form{
+	font-size: 12px;
+	padding-left: 3px;
+}
+
+.side-nav{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 1);
+	overflow-x: hidden;
+	z-index: 99;
+	-webkit-transition: 0.5s;
+	   -moz-transition: 0.5s;
+			transition: 0.5s;
+}
+.side-nav-menu{
+	margin-top: 60px;
+}
+.side-nav a{
+	padding: 8px 8px 8px 32px;
+	text-decoration: none;
+	font-size: 20px;
+	color: #727272;
+	display: block;
+	-webkit-transition: 0.3s;
+	   -moz-transition: 0.3s;
+			transition: 0.3s;
+}
+.side-nav li{
+	display: block;
+}
+.side-nav a:hover{
+	color: #f1f1f1;
+}
+/******* Toolbar CSS End *******/
+
+.categories{
+  text-align:center !important;
+  margin-bottom:20px;
+  border-bottom:1px solid #e4e4e4;
+  padding:10px;
+}
+
+.categories li{
+  display:inline-block !important;
+  float:none;
+}
+
+.post-body{
+  margin-top:30px;
+  font-size:16px;
+}
+
+@media (min-width:992px) {
+  .post-title{
+    text-align:right;
+    padding-right:30px;
+  }
+}
+
+.post-title .author{
+  text-transform:uppercase;
+}
+
+.post-body figure{
+  margin-bottom:10px;
+  text-align:center;
+}
+
+.post-title .author span{
+  margin-left:5px;
+}
+
+.post-title h1{
+  font-weight:bold;
+  margin-top:30px;
+}
+
+@media (max-width:767px) {
+  .post-title h1{
+    margin-top:20px;
+    font-size:32px;
+    margin-bottom:10px;
+  }
+}
+
+footer{
+	text-align:center;
+	background-color:#333;
+	color:#fff;
+	height: 85px;
+	bottom: 0;
+	width: 100%;
+	margin-top: 50px;
+	-webkit-transition: 0.3s;
+	   -moz-transition: 0.3s;
+			transition: 0.3s;
+}
+
+footer h5{
+	color:inherit;
+	margin: 31px;
+}
+
+div.container.post{
+  margin-bottom:50px;
+}
+
+/******* Booklog CSS Start *******/
+.booklog-border-thin{
+	border: 1px solid #DBE2EF;
+}
+
+.booklog-border{
+	border: 2px solid #DBE2EF;
+}
+
+.booklog-border-thick{
+	border: 3px solid #DBE2EF;
+}
+
+.booklog-border-radius-thin{
+	border-radius: 4px;
+}
+
+.booklog-border-radius{
+	border-radius: 8px;
+}
+
+.booklog-border-radius-thick{
+	border-radius: 12px;
+}
+
+.booklog-background{
+	background-color: #F9F7F7;
+}
+
+.booklog-font-color{
+	color: #112D42;
+}
+
+div.div-booklog{
+	cursor: pointer;
+}
+div.div-posting, div.posting-img{
+	height: 200px;
+	overflow: hidden;
+}
+div.div-posting{
+	margin: 20px 10px;
+}
+div.div-posting .posting-img, div.div-posting h3{
+	cursor: pointer;
+}
+div.div-posting h3, div.div-posting h4{
+	 font-family: NanumPen, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+span.posting-content{
+	text-overflow: ellipsis;
+	white-space: normal;
+	word-wrap: normal;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 3; /* 라인수 */
+	-webkit-box-orient: vertical;
+	word-wrap: break-word; 
+	line-height: 1.6em;
+	height: 4.8em;
+}
+img.posting-img{
+	opacity: 0.8;
+	transition: 0.5s;
+}
+img.posting-img:hover{
+	transform: scale(1.3);
+}
+div.hidden-md img{
+	opacity: 0.3;
+}
+.img-object-fit{
+	height: 100%;
+	width: 100%;
+	object-fit: cover;
+}
+.posting-list, .book-like-list, .booklog-list{
+	position: absolute;
+	bottom: -5%;
+	right: 5%;
+	z-index: 5;
+	cursor: pointer;
+}
+	    
+.row.booklog-profile{
+   	margin: 20px -10px;
+}
+.profile-box{
+   	-webkit-box-shadow: 3px 1px 2px 0px;
+   	   -moz-box-shadow: 3px 1px 2px 0px;
+	    	box-shadow: 3px 1px 2px 0px;
+}
+.row.booklog-profile .row{
+   	padding: 8px;
+}
+.booklog-img{
+   	height: 250px;
+   	max-height: 300px;
+   	background-color: #F9F7F7;
+}
+.booklog-img img{
+	border: 2px solid #DBE2EF;
+}
+.row.booklog-img > div{
+	overflow: hidden;
+}
+.row.booklog-name{
+	border-bottom: 3px solid #DBE2EF;
+	background-color: #F9F7F7;
+}
+.row.booklog-intro{
+	background-color: #DBE2EF;
+}
+.row.booklog-content-num{
+	background-color: #112D42;
+}
+.row.booklog-content-num > div{
+	color: #F9F7F7;
+}
+span.content-icon{
+	font-size: 20px;
+}
+.vertical-line{
+	position: relative;
+	float: left;
+	width: 0;
+	height: 40px;
+	border: 1px solid #F9F7F7;
+	margin: -1px;
+}
+.bookmarked{
+	color: #0c7cd5;
+}
+.category-space{
+	margin-top: 4%;
+}
+.category-space h2{
+	font-family: NanumBrush, Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+
+@media (min-width: 992px){
+ 	.booklog-img-box{
+ 		left: 3% !important;
+ 		width: 30% !important;
+ 	}
+ 	.booklog-content-box{
+ 		left: 33% !important;
+ 		width: 50% !important;
+ 	}
+ 	.booklog-content-count{
+ 		width: 17% !important;
+ 	}
+}
+@media (min-width: 768px){
+	
+}
+.booklog-list-box{
+	position: relative;
+}
+.booklog-card{
+	position: relative;
+	height: 200px;
+	width: 100%;
+	padding: 5% 3%;
+}
+.booklog-card-board{
+	position: relative;
+	height: 100%;
+	width: 100%;
+	padding: 2% 3%;
+	box-shadow: 1px 1px 1px 1px;
+}
+
+.booklog-img-box, .booklog-content-box{
+	position: absolute;
+	top: 0;
+	height: 100%;
+}
+.booklog-img-box{
+	left: 3%;
+	width: 40%;
+	margin-left: -3%;
+}
+.booklog-content-box{
+	cursor: pointer;
+	left: 43%;
+	width: 54%;
+	padding: 2%;
+}
+.booklog-content-count{
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: 100%;
+	background-color: #112D42;
+}
+.content-count-box{
+	position: absolute;
+	left: 0;
+	width: 100%;
+	height: 32.3333333%;
+	padding: 4%;
+	text-align: center;
+}
+.content-count-box > *{
+	display: inline-block;
+	color: #DBE2EF
+}
+.creation-count{
+	top: 0;
+}
+.posting-count{
+	top: 33.3333333%;
+}
+.bookmark-count{
+	top: 67.6666666%
+}
+.horizontal-line{
+	position: absolute;
+	width: 60%;
+	left: 20%;
+	height: 1px;
+	border-bottom: 2px solid #DBE2EF;
+}
+/******* Booklog CSS End *******/
+.btn-form{
+	border: 2px groove; 
+	padding: 5px;
+	border-radius: 7px; 
+	display:inline-block;
+	padding-left: 15px;
+	padding-right: 15px;
+	cursor:pointer;
+}
